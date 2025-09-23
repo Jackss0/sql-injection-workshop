@@ -165,35 +165,5 @@ namespace SqlInjectionWorkshop.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
-
-        /// <summary>
-        /// ✅ BONUS: Endpoint adicional que muestra cómo usar SQL crudo de forma segura
-        /// Si necesitas usar SQL crudo, siempre usa parámetros con FromSqlInterpolated
-        /// </summary>
-        [HttpGet("products/expensive")]
-        public async Task<IActionResult> GetExpensiveProducts([FromQuery] decimal minPrice)
-        {
-            try
-            {
-                _logger.LogInformation("✅ SECURE RAW SQL - MinPrice: {MinPrice}", minPrice);
-                
-                // ✅ SECURE: Usar Entity Framework con LINQ (más seguro que SQL crudo)
-                var products = await _context.Products
-                    .Where(p => p.Price >= minPrice)
-                    .ToListAsync();
-
-                _logger.LogInformation("✅ EXPENSIVE PRODUCTS - Found {Count} products", products.Count);
-                
-                return Ok(new { 
-                    products,
-                    security = "✅ Este endpoint usa Entity Framework LINQ de forma segura"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error en consulta segura de productos caros");
-                return StatusCode(500, new { message = "Error interno del servidor" });
-            }
-        }
     }
 }
