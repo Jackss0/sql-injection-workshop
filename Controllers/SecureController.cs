@@ -22,12 +22,12 @@ namespace SqlInjectionWorkshop.Controllers
         }
 
         /// <summary>
-        /// ✅ SECURE ENDPOINT - Autenticación segura usando Entity Framework
-        /// Este endpoint es seguro porque usa Entity Framework con parámetros
-        /// que previenen la inyección SQL automáticamente.
+        /// ✅ SECURE ENDPOINT - Secure authentication using Entity Framework
+        /// This endpoint is secure because it uses Entity Framework with parameters
+        /// that automatically prevent SQL injection.
         /// 
-        /// Entity Framework usa parámetros preparados que escapan automáticamente
-        /// los caracteres especiales y previenen la inyección SQL.
+        /// Entity Framework uses prepared parameters that automatically escape
+        /// special characters and prevent SQL injection.
         /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -36,7 +36,7 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogInformation("✅ SECURE LOGIN ATTEMPT - Username: {Username}", request.Username);
                 
-                // ✅ SECURE: Usar Entity Framework con LINQ (usa parámetros automáticamente)
+                // ✅ SECURE: Use Entity Framework with LINQ (uses parameters automatically)
                 var user = await _context.Users
                     .Where(u => u.Username == request.Username && u.Password == request.Password)
                     .FirstOrDefaultAsync();
@@ -45,28 +45,28 @@ namespace SqlInjectionWorkshop.Controllers
                 {
                     _logger.LogInformation("✅ LOGIN SUCCESSFUL - User: {Username}", user.Username);
                     return Ok(new { 
-                        message = "Login exitoso", 
+                        message = "Login successful", 
                         user = new { user.Username, user.Email, user.IsAdmin },
-                        security = "✅ Este endpoint es seguro contra SQL Injection"
+                        security = "✅ This endpoint is secure against SQL Injection"
                     });
                 }
 
                 _logger.LogWarning("❌ LOGIN FAILED - Invalid credentials for: {Username}", request.Username);
-                return Unauthorized(new { message = "Credenciales inválidas" });
+                return Unauthorized(new { message = "Invalid credentials" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en login seguro");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in secure login");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ✅ SECURE ENDPOINT - Búsqueda segura usando Entity Framework
-        /// Este endpoint es seguro porque usa Entity Framework con parámetros
-        /// que previenen la inyección SQL automáticamente.
+        /// ✅ SECURE ENDPOINT - Secure search using Entity Framework
+        /// This endpoint is secure because it uses Entity Framework with parameters
+        /// that automatically prevent SQL injection.
         /// 
-        /// Contains() en Entity Framework se convierte en parámetros preparados.
+        /// Contains() in Entity Framework is converted to prepared parameters.
         /// </summary>
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm)
@@ -75,7 +75,7 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogInformation("✅ SECURE SEARCH - Term: {SearchTerm}", searchTerm);
                 
-                // ✅ SECURE: Usar Entity Framework con LINQ (usa parámetros automáticamente)
+                // ✅ SECURE: Use Entity Framework with LINQ (uses parameters automatically)
                 var products = await _context.Products
                     .Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm))
                     .ToListAsync();
@@ -84,22 +84,22 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 return Ok(new { 
                     products,
-                    security = "✅ Este endpoint es seguro contra SQL Injection"
+                    security = "✅ This endpoint is secure against SQL Injection"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en búsqueda segura");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in secure search");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ✅ SECURE ENDPOINT - Inserción segura usando Entity Framework
-        /// Este endpoint es seguro porque usa Entity Framework que maneja
-        /// automáticamente la parametrización de consultas.
+        /// ✅ SECURE ENDPOINT - Secure insertion using Entity Framework
+        /// This endpoint is secure because it uses Entity Framework that handles
+        /// query parameterization automatically.
         /// 
-        /// Entity Framework previene la inyección SQL usando parámetros preparados.
+        /// Entity Framework prevents SQL injection using prepared parameters.
         /// </summary>
         [HttpPost("comments")]
         public async Task<IActionResult> AddComment([FromBody] CommentRequest request)
@@ -108,7 +108,7 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogInformation("✅ SECURE COMMENT INSERT - Author: {Author}", request.Author);
                 
-                // ✅ SECURE: Usar Entity Framework (usa parámetros automáticamente)
+                // ✅ SECURE: Use Entity Framework (uses parameters automatically)
                 var comment = new Comment
                 {
                     Content = request.Content,
@@ -123,24 +123,24 @@ namespace SqlInjectionWorkshop.Controllers
                 _logger.LogInformation("✅ COMMENT INSERTED - Comment ID: {Id}", comment.Id);
                 
                 return Ok(new { 
-                    message = "Comentario agregado",
+                    message = "Comment added",
                     commentId = comment.Id,
-                    security = "✅ Este endpoint es seguro contra SQL Injection"
+                    security = "✅ This endpoint is secure against SQL Injection"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en inserción segura de comentario");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in secure comment insertion");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ✅ SECURE ENDPOINT - Actualización segura usando Entity Framework
-        /// Este endpoint es seguro porque usa Entity Framework que maneja
-        /// automáticamente la parametrización de consultas.
+        /// ✅ SECURE ENDPOINT - Secure update using Entity Framework
+        /// This endpoint is secure because it uses Entity Framework that handles
+        /// query parameterization automatically.
         /// 
-        /// Entity Framework previene la inyección SQL usando parámetros preparados.
+        /// Entity Framework prevents SQL injection using prepared parameters.
         /// </summary>
         [HttpPost("admin/update")]
         public async Task<IActionResult> UpdateUser([FromBody] dynamic request)
@@ -152,7 +152,7 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 _logger.LogInformation("✅ SECURE ADMIN UPDATE - Username: {Username}, IsAdmin: {IsAdmin}", username, isAdmin);
                 
-                // ✅ SECURE: Usar Entity Framework con LINQ (usa parámetros automáticamente)
+                // ✅ SECURE: Use Entity Framework with LINQ (uses parameters automatically)
                 var user = await _context.Users
                     .Where(u => u.Username == username)
                     .FirstOrDefaultAsync();
@@ -165,24 +165,24 @@ namespace SqlInjectionWorkshop.Controllers
                     _logger.LogInformation("✅ ADMIN UPDATE COMPLETED - User: {Username}, IsAdmin: {IsAdmin}", user.Username, user.IsAdmin);
                     
                     return Ok(new { 
-                        message = "Usuario actualizado",
+                        message = "User updated",
                         user = new { user.Username, user.IsAdmin },
-                        security = "✅ Este endpoint es seguro contra SQL Injection"
+                        security = "✅ This endpoint is secure against SQL Injection"
                     });
                 }
 
-                return NotFound(new { message = "Usuario no encontrado" });
+                return NotFound(new { message = "User not found" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en actualización segura de usuario");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in secure user update");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ✅ BONUS: Endpoint adicional que muestra cómo usar SQL crudo de forma segura
-        /// Si necesitas usar SQL crudo, siempre usa parámetros con FromSqlInterpolated
+        /// ✅ BONUS: Additional endpoint showing how to use raw SQL securely
+        /// If you need to use raw SQL, always use parameters with FromSqlInterpolated
         /// </summary>
         [HttpGet("products/expensive")]
         public async Task<IActionResult> GetExpensiveProducts([FromQuery] decimal minPrice)
@@ -191,7 +191,7 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogInformation("✅ SECURE RAW SQL - MinPrice: {MinPrice}", minPrice);
                 
-                // ✅ SECURE: Usar FromSqlInterpolated con parámetros
+                // ✅ SECURE: Use FromSqlInterpolated with parameters
                 var products = await _context.Products
                     .FromSqlInterpolated($"SELECT * FROM Products WHERE Price >= {minPrice}")
                     .ToListAsync();
@@ -200,13 +200,13 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 return Ok(new { 
                     products,
-                    security = "✅ Este endpoint usa SQL crudo de forma segura con parámetros"
+                    security = "✅ This endpoint uses raw SQL securely with parameters"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en consulta segura de productos caros");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in secure expensive products query");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
     }

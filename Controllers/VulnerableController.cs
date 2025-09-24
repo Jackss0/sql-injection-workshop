@@ -21,15 +21,15 @@ namespace SqlInjectionWorkshop.Controllers
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en autenticación
-        /// Este endpoint es vulnerable a SQL Injection porque concatena directamente
-        /// los parámetros de entrada en la consulta SQL sin usar parámetros.
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in authentication
+        /// This endpoint is vulnerable to SQL Injection because it directly concatenates
+        /// input parameters in the SQL query without using parameters.
         /// 
-        /// Ejemplo de ataque:
+        /// Attack example:
         /// Username: admin' OR '1'='1' --
-        /// Password: cualquier cosa
+        /// Password: anything
         /// 
-        /// Esto resultaría en: SELECT * FROM Users WHERE Username = 'admin' OR '1'='1' --' AND Password = 'cualquier cosa'
+        /// This would result in: SELECT * FROM Users WHERE Username = 'admin' OR '1'='1' --' AND Password = 'anything'
         /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -38,12 +38,12 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogWarning("⚠️ VULNERABLE LOGIN ATTEMPT - Username: {Username}", request.Username);
                 
-                // ⚠️ VULNERABLE: Concatenación directa de strings en SQL
+                // ⚠️ VULNERABLE: Direct string concatenation in SQL
                 var query = $"SELECT * FROM Users WHERE Username = '{request.Username}' AND Password = '{request.Password}'";
                 
-                _logger.LogInformation("🔍 Ejecutando consulta vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Executing vulnerable query: {Query}", query);
                 
-                // Ejecutar consulta vulnerable usando FromSqlRaw
+                // Execute vulnerable query using FromSqlRaw
                 var user = await _context.Users
                     .FromSqlRaw(query)
                     .FirstOrDefaultAsync();
@@ -52,29 +52,29 @@ namespace SqlInjectionWorkshop.Controllers
                 {
                     _logger.LogWarning("🚨 LOGIN SUCCESSFUL - Vulnerable endpoint bypassed! User: {Username}", user.Username);
                     return Ok(new { 
-                        message = "Login exitoso", 
+                        message = "Login successful", 
                         user = new { user.Username, user.Email, user.IsAdmin },
-                        warning = "⚠️ Este endpoint es vulnerable a SQL Injection"
+                        warning = "⚠️ This endpoint is vulnerable to SQL Injection"
                     });
                 }
 
-                return Unauthorized(new { message = "Credenciales inválidas" });
+                return Unauthorized(new { message = "Invalid credentials" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en login vulnerable");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable login");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en búsqueda
-        /// Este endpoint es vulnerable porque usa concatenación directa en LIKE
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in search
+        /// This endpoint is vulnerable because it uses direct concatenation in LIKE
         /// 
-        /// Ejemplo de ataque:
+        /// Attack example:
         /// SearchTerm: %' UNION SELECT Username, Password, Email, IsAdmin FROM Users --
         /// 
-        /// Esto podría exponer información sensible de usuarios
+        /// This could expose sensitive user information
         /// </summary>
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm)
@@ -83,10 +83,10 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogWarning("⚠️ VULNERABLE SEARCH - Term: {SearchTerm}", searchTerm);
                 
-                // ⚠️ VULNERABLE: Concatenación directa en LIKE
+                // ⚠️ VULNERABLE: Direct concatenation in LIKE
                 var query = $"SELECT * FROM Products WHERE Name LIKE '%{searchTerm}%' OR Description LIKE '%{searchTerm}%'";
                 
-                _logger.LogInformation("🔍 Ejecutando búsqueda vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Executing vulnerable search: {Query}", query);
                 
                 var products = await _context.Products
                     .FromSqlRaw(query)
@@ -96,25 +96,25 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 return Ok(new { 
                     products,
-                    warning = "⚠️ Este endpoint es vulnerable a SQL Injection"
+                    warning = "⚠️ This endpoint is vulnerable to SQL Injection"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en búsqueda vulnerable");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable search");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en inserción de comentarios
-        /// Este endpoint permite inyección SQL en la inserción de datos
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in comment insertion
+        /// This endpoint allows SQL injection in data insertion
         /// 
-        /// Ejemplo de ataque:
+        /// Attack example:
         /// Content: '); DROP TABLE Comments; --
         /// Author: hacker
         /// 
-        /// Esto podría eliminar la tabla de comentarios
+        /// This could delete the comments table
         /// </summary>
         [HttpPost("comments")]
         public async Task<IActionResult> AddComment([FromBody] CommentRequest request)
@@ -123,35 +123,35 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogWarning("⚠️ VULNERABLE COMMENT INSERT - Author: {Author}", request.Author);
                 
-                // ⚠️ VULNERABLE: Concatenación directa en INSERT
+                // ⚠️ VULNERABLE: Direct concatenation in INSERT
                 var query = $"INSERT INTO Comments (Content, Author, CreatedAt, IsApproved) VALUES ('{request.Content}', '{request.Author}', '{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}', 0)";
                 
-                _logger.LogInformation("🔍 Ejecutando inserción vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Executing vulnerable insertion: {Query}", query);
                 
                 await _context.Database.ExecuteSqlRawAsync(query);
                 
                 _logger.LogWarning("🚨 COMMENT INSERTED - Vulnerable insertion completed");
                 
                 return Ok(new { 
-                    message = "Comentario agregado",
-                    warning = "⚠️ Este endpoint es vulnerable a SQL Injection"
+                    message = "Comment added",
+                    warning = "⚠️ This endpoint is vulnerable to SQL Injection"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en inserción vulnerable de comentario");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable comment insertion");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en actualización de datos
-        /// Este endpoint permite modificar datos usando SQL Injection
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in data update
+        /// This endpoint allows data modification using SQL Injection
         /// 
-        /// Ejemplo de ataque:
+        /// Attack example:
         /// Username: admin'; UPDATE Users SET IsAdmin = 1 WHERE Username = 'user1'; --
         /// 
-        /// Esto podría otorgar privilegios de administrador a usuarios normales
+        /// This could grant administrator privileges to normal users
         /// </summary>
         [HttpPost("admin/update")]
         public async Task<IActionResult> UpdateUser([FromBody] dynamic request)
@@ -163,25 +163,25 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 _logger.LogWarning("⚠️ VULNERABLE ADMIN UPDATE - Username: {Username}, IsAdmin: {IsAdmin}", username, isAdmin);
                 
-                // ⚠️ VULNERABLE: Concatenación directa en UPDATE
+                // ⚠️ VULNERABLE: Direct concatenation in UPDATE
                 var query = $"UPDATE Users SET IsAdmin = {isAdmin} WHERE Username = '{username}'";
                 
-                _logger.LogInformation("🔍 Ejecutando actualización vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Executing vulnerable update: {Query}", query);
                 
                 var rowsAffected = await _context.Database.ExecuteSqlRawAsync(query);
                 
                 _logger.LogWarning("🚨 ADMIN UPDATE COMPLETED - Rows affected: {RowsAffected}", rowsAffected);
                 
                 return Ok(new { 
-                    message = "Usuario actualizado",
+                    message = "User updated",
                     rowsAffected,
-                    warning = "⚠️ Este endpoint es vulnerable a SQL Injection"
+                    warning = "⚠️ This endpoint is vulnerable to SQL Injection"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en actualización vulnerable de usuario");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable user update");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
     }

@@ -20,9 +20,9 @@ namespace SqlInjectionWorkshop.Controllers
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en autenticación
-        /// Este endpoint simula una vulnerabilidad de SQL Injection
-        /// En un escenario real, esto sería una concatenación directa de strings en SQL
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in authentication
+        /// This endpoint simulates a SQL Injection vulnerability
+        /// In a real scenario, this would be direct string concatenation in SQL
         /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -31,13 +31,13 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogWarning("⚠️ VULNERABLE LOGIN ATTEMPT - Username: {Username}", request.Username);
                 
-                // ⚠️ VULNERABLE: Simulación de concatenación directa
-                // En un escenario real sería: $"SELECT * FROM Users WHERE Username = '{request.Username}' AND Password = '{request.Password}'"
+                // ⚠️ VULNERABLE: Simulation of direct concatenation
+                // In a real scenario it would be: $"SELECT * FROM Users WHERE Username = '{request.Username}' AND Password = '{request.Password}'"
                 var query = $"SELECT * FROM Users WHERE Username = '{request.Username}' AND Password = '{request.Password}'";
                 
-                _logger.LogInformation("🔍 Simulando consulta vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Simulating vulnerable query: {Query}", query);
                 
-                // Simulación de la vulnerabilidad - buscar usuario con lógica vulnerable
+                // Simulation of the vulnerability - search user with vulnerable logic
                 var user = await _context.Users
                     .Where(u => u.Username == request.Username && u.Password == request.Password)
                     .FirstOrDefaultAsync();
@@ -46,33 +46,33 @@ namespace SqlInjectionWorkshop.Controllers
                 if (request.Username.Contains("'") || request.Username.Contains("--") || request.Username.Contains("OR"))
                 {
                     _logger.LogWarning("🚨 SQL INJECTION DETECTED - Attempting bypass with: {Username}", request.Username);
-                    // En un escenario real, esto permitiría el bypass
-                    user = await _context.Users.FirstOrDefaultAsync(); // Obtener cualquier usuario
+                    // In a real scenario, this would allow the bypass
+                    user = await _context.Users.FirstOrDefaultAsync(); // Get any user
                 }
 
                 if (user != null)
                 {
                     _logger.LogWarning("🚨 LOGIN SUCCESSFUL - Vulnerable endpoint bypassed! User: {Username}", user.Username);
                     return Ok(new { 
-                        message = "Login exitoso", 
+                        message = "Login successful", 
                         user = new { user.Username, user.Email, user.IsAdmin },
-                        warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                        warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                         vulnerableQuery = query
                     });
                 }
 
-                return Unauthorized(new { message = "Credenciales inválidas" });
+                return Unauthorized(new { message = "Invalid credentials" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en login vulnerable");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable login");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en búsqueda
-        /// Este endpoint simula una vulnerabilidad de búsqueda
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in search
+        /// This endpoint simulates a search vulnerability
         /// </summary>
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string searchTerm)
@@ -81,12 +81,12 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogWarning("⚠️ VULNERABLE SEARCH - Term: {SearchTerm}", searchTerm);
                 
-                // ⚠️ VULNERABLE: Simulación de concatenación directa en LIKE
+                // ⚠️ VULNERABLE: Simulation of direct concatenation in LIKE
                 var query = $"SELECT * FROM Products WHERE Name LIKE '%{searchTerm}%' OR Description LIKE '%{searchTerm}%'";
                 
-                _logger.LogInformation("🔍 Simulando búsqueda vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Simulating vulnerable search: {Query}", query);
                 
-                // Simular vulnerabilidad - si contiene caracteres especiales, devolver todos los productos
+                // Simulate vulnerability - if it contains special characters, return all products
                 var products = await _context.Products.ToListAsync();
                 
                 if (searchTerm.Contains("'") || searchTerm.Contains("--") || searchTerm.Contains("UNION"))
@@ -94,13 +94,13 @@ namespace SqlInjectionWorkshop.Controllers
                     _logger.LogWarning("🚨 SQL INJECTION DETECTED - Returning all products due to malicious input");
                     return Ok(new { 
                         products,
-                        warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                        warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                         vulnerableQuery = query,
-                        securityNote = "En un escenario real, esto podría exponer datos sensibles"
+                        securityNote = "In a real scenario, this could expose sensitive data"
                     });
                 }
                 
-                // Búsqueda normal
+                // Normal search
                 products = products.Where(p => 
                     p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
                     p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
@@ -110,20 +110,20 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 return Ok(new { 
                     products,
-                    warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                    warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                     vulnerableQuery = query
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en búsqueda vulnerable");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable search");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en inserción de comentarios
-        /// Este endpoint simula una vulnerabilidad de inserción
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in comment insertion
+        /// This endpoint simulates an insertion vulnerability
         /// </summary>
         [HttpPost("comments")]
         public async Task<IActionResult> AddComment([FromBody] CommentRequest request)
@@ -132,24 +132,24 @@ namespace SqlInjectionWorkshop.Controllers
             {
                 _logger.LogWarning("⚠️ VULNERABLE COMMENT INSERT - Author: {Author}", request.Author);
                 
-                // ⚠️ VULNERABLE: Simulación de concatenación directa en INSERT
+                // ⚠️ VULNERABLE: Simulation of direct concatenation in INSERT
                 var query = $"INSERT INTO Comments (Content, Author, CreatedAt, IsApproved) VALUES ('{request.Content}', '{request.Author}', '{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}', 0)";
                 
-                _logger.LogInformation("🔍 Simulando inserción vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Simulating vulnerable insertion: {Query}", query);
                 
-                // Simular vulnerabilidad - si contiene caracteres especiales, mostrar advertencia
+                // Simulate vulnerability - if it contains special characters, show warning
                 if (request.Content.Contains("'") || request.Content.Contains("--") || request.Content.Contains("DROP"))
                 {
                     _logger.LogWarning("🚨 SQL INJECTION DETECTED - Malicious content detected: {Content}", request.Content);
                     return Ok(new { 
-                        message = "⚠️ Intento de SQL Injection detectado",
-                        warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                        message = "⚠️ SQL Injection attempt detected",
+                        warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                         vulnerableQuery = query,
-                        securityNote = "En un escenario real, esto podría ejecutar comandos maliciosos"
+                        securityNote = "In a real scenario, this could execute malicious commands"
                     });
                 }
 
-                // Inserción normal
+                // Normal insertion
                 var comment = new Comment
                 {
                     Content = request.Content,
@@ -164,22 +164,22 @@ namespace SqlInjectionWorkshop.Controllers
                 _logger.LogWarning("🚨 COMMENT INSERTED - Vulnerable insertion completed");
                 
                 return Ok(new { 
-                    message = "Comentario agregado",
+                    message = "Comment added",
                     commentId = comment.Id,
-                    warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                    warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                     vulnerableQuery = query
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en inserción vulnerable de comentario");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable comment insertion");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection en actualización de datos
-        /// Este endpoint simula una vulnerabilidad de actualización
+        /// ⚠️ VULNERABLE ENDPOINT - SQL Injection in data update
+        /// This endpoint simulates an update vulnerability
         /// </summary>
         [HttpPost("admin/update")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
@@ -191,24 +191,24 @@ namespace SqlInjectionWorkshop.Controllers
                 
                 _logger.LogWarning("⚠️ VULNERABLE ADMIN UPDATE - Username: {Username}, IsAdmin: {IsAdmin}", username, isAdmin);
                 
-                // ⚠️ VULNERABLE: Simulación de concatenación directa en UPDATE
+                // ⚠️ VULNERABLE: Simulation of direct concatenation in UPDATE
                 var query = $"UPDATE Users SET IsAdmin = {isAdmin} WHERE Username = '{username}'";
                 
-                _logger.LogInformation("🔍 Simulando actualización vulnerable: {Query}", query);
+                _logger.LogInformation("🔍 Simulating vulnerable update: {Query}", query);
                 
-                // Simular vulnerabilidad - si contiene caracteres especiales, mostrar advertencia
+                // Simulate vulnerability - if it contains special characters, show warning
                 if (username.Contains("'") || username.Contains("--") || username.Contains("UPDATE"))
                 {
                     _logger.LogWarning("🚨 SQL INJECTION DETECTED - Malicious username: {Username}", username);
                     return Ok(new { 
-                        message = "⚠️ Intento de SQL Injection detectado",
-                        warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                        message = "⚠️ SQL Injection attempt detected",
+                        warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                         vulnerableQuery = query,
-                        securityNote = "En un escenario real, esto podría modificar datos no autorizados"
+                        securityNote = "In a real scenario, this could modify unauthorized data"
                     });
                 }
 
-                // Actualización normal
+                // Normal update
                 var user = await _context.Users
                     .Where(u => u.Username == username)
                     .FirstOrDefaultAsync();
@@ -221,19 +221,19 @@ namespace SqlInjectionWorkshop.Controllers
                     _logger.LogWarning("🚨 ADMIN UPDATE COMPLETED - User: {Username}, IsAdmin: {IsAdmin}", user.Username, user.IsAdmin);
                     
                     return Ok(new { 
-                        message = "Usuario actualizado",
+                        message = "User updated",
                         user = new { user.Username, user.IsAdmin },
-                        warning = "⚠️ Este endpoint es vulnerable a SQL Injection",
+                        warning = "⚠️ This endpoint is vulnerable to SQL Injection",
                         vulnerableQuery = query
                     });
                 }
 
-                return NotFound(new { message = "Usuario no encontrado" });
+                return NotFound(new { message = "User not found" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error en actualización vulnerable de usuario");
-                return StatusCode(500, new { message = "Error interno del servidor" });
+                _logger.LogError(ex, "Error in vulnerable user update");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
     }
